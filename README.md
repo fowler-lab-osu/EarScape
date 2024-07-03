@@ -2,7 +2,7 @@
 Code for statistical spatial analysis for EarVision paper. 
 
 # Description of files 
-1) spatial_analysis_for_paper_updated.rmd
+1) spatial_analysis_cleaned.rmd
    - The general code for the statistical outputs are from here.
    - Note that the path the file is uploaded from should be changed to match the path of the current user.
    - Places that the path should be edited include anywhere that say "/Users/michellebang/st research lab/spatialanalysis/SpatialAnalysisMichelle/SpatialAnalysis_Alleles_AmbigAdjust"
