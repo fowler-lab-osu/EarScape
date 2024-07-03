@@ -23,7 +23,7 @@ Code for statistical spatial analysis for EarVision paper.
    - Converts coordinates into bins. 
 
 # Description of output files 
-(All from spatial_analysis_for_paper_updated.rmd)
+(All from spatial_analysis_cleaned.rmd)
 1) prop_true_pval.tsv
    - Includes statistics from pi0est that estimates the proportion of true null p-values. The complement of the the proportion of true null p-values are referred to as "True Prop". In "True Prop", the p-value used for each observation depends on the best fit (Lin vs. Quad).
    - In "Lin Prop", all the p-values are from the linear model.
