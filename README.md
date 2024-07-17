@@ -20,7 +20,9 @@ Code for statistical spatial analysis for EarVision paper.
 4) xml_to_coord_edited.R
    - Converts .xml files into coordinate form for the new, EarVision, .xml files. 
 5) coordinates_to_xbins.R
-   - Converts coordinates into bins. 
+   - Converts coordinates into bins.
+6) 2024_analysis_for_paper.Rmd
+   - Initial GLM pipeline from Luis + additional edits that computes additional statistics such as SD, total count, etc. 
 
 # Description of output files 
 (All from spatial_analysis_cleaned.rmd)
