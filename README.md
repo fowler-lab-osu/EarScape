@@ -50,10 +50,12 @@ Code for statistical spatial analysis for EarVision paper.
 (All from spatial_graphs_for_paper.rmd)
 1) {allele}_basic.pdf
    - Bar graph of WT vs. GFP for all observations.
+   - Scatter plot of X and Y coords colored by WT and GFP. 
 2) {allele}_graphs.pdf
    - Bar graph of WT count depending on bin.
    - Bar graph of GFP count depending on bin.
    - Stacked bar graph of WT/GFP count depending on bin.
+   - Stacked bar graph of WT/GFP count depending on bin, colored and horizontal version.
 3) {allele}_xcoordsbytr_linear_ends.pdf
    - Scatterplot of transmission rate vs. bins/x-coord with linear line fitted.
 4) {allele}_xcoordsbytr_quad_ends.pdf
