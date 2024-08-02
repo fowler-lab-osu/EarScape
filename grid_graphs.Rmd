@@ -1,5 +1,5 @@
 ---
-title: "Spatial Graphs for Paper"
+title: "Grid Spatial Graphs for Paper"
 author: "Michelle Bang"
 date: "`r Sys.Date()`"
 output: pdf_document
