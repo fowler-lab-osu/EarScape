@@ -76,6 +76,16 @@ for (n in 1:length(filenames)){
         geom_bar()  +
         ggtitle(filenames[[n]][[3]][[i]]) + 
         theme(plot.title = element_text(hjust = 0.5)))
+
+#### GRAPH B IN JOHN'S EMAIL ####
+    #Scatter plot of GFP vs. WT for all observations. 
+    print(ggplot(data = coords[[i]], aes(x=x, y=y, color = type)) +
+        geom_point()  +
+        ggtitle(filenames[[n]][[3]][[i]]) + 
+  scale_color_manual(values = c("#39FF14", "purple")) +
+        theme(plot.title = element_text(hjust = 0.5)))
+    
+  }
   }
   
   dev.off()
@@ -148,6 +158,14 @@ for (n in 1:length(filenames)){
             geom_col() +
             ggtitle(titleList[[i]]) +
             theme(plot.title = element_text(hjust = 0.5)) + coord_flip())
+
+#### GRAPH C IN JOHN'S EMAIL ####
+      #colored and horizontal version of stacked bar graph of wt/gfp
+      print(ggplot(data = test_long_df, aes(x = bins, y = value, fill = type)) +
+            geom_col() +
+            ggtitle(titleList[[i]]) +
+  scale_fill_manual(values = c("#39FF14", "purple")) +
+            theme(plot.title = element_text(hjust = 0.5)))
   }
   
   dev.off()
