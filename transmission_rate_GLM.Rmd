@@ -1,0 +1,217 @@
+---
+title: "Transmission Rate GLM for Spatial Analysis"
+author: "Michelle Bang"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+# GLM for transmission rate and determining alleles with significant transmission biases
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# Using tidyverse
+library(tidyverse)
+```
+
+```{r}
+new_df <- read.table(file = "SpatialAnalysis_Alleles_58/AllEarKernelCountData_58.csv",
+                              header = TRUE,
+                              sep = ',', na.strings = c("", " ", NA))
+```
+
+```{r}
+male_df <- new_df[new_df$cross_type == "Pollen",]
+female_df <- new_df[new_df$cross_type == "Ear",]
+```
+
+# Analysis on male data
+```{r}
+
+# Using quasi binomial log model
+
+full_mod <- glm(cbind(number_of_GFP_kernels, number_of_WT_kernels) ~
+                                as.factor(allele),
+                              data = male_df,
+                              family = quasibinomial(link = "logit"))
+print(full_mod)
+
+S = vcov(full_mod)
+```
+
+```{r}
+summary(full_mod)
+nrow(coef(summary(full_mod)))
+```
+
+```{r}
+raw_p = coef(summary(full_mod))[1,4]
+beta_list = coef(summary(full_mod))[1,1]
+est_coef = (exp(beta_list)/(1 + exp(beta_list)))
+low_int = exp(beta_list - qnorm(.975)*coef(summary(full_mod))[1,2])/(1+exp(beta_list - qnorm(.975)*coef(summary(full_mod))[1,2]))
+up_int = exp(beta_list + qnorm(.975)*coef(summary(full_mod))[1,2])/(1+exp(beta_list + qnorm(.975)*coef(summary(full_mod))[1,2]))
+sigma1 = coef(summary(full_mod))[1,2] #this is correct SD
+sigma2 = sqrt(S[1,1]) #this results in the same SD
+
+```
+
+```{r}
+for (i in 2:nrow(coef(summary(full_mod)))){ # Starting at 2 because we already collected the first one...
+  beta = coef(summary(full_mod))[1,1] + coef(summary(full_mod))[i,1] # Intercept + Allele coefficient .
+  sigma = sqrt(sum(c(S[1,i], S[i,1], S[1,1], S[i,i])))
+  raw_p = c(raw_p, 2*(1-pnorm(abs((beta)/sigma))))
+  beta_list = c(beta_list, beta)
+  est_coef = c(est_coef, (exp(beta)/(1+exp(beta))))
+  low_int = c(low_int, exp(beta-qnorm(.975)*sigma)/(1+exp(beta-qnorm(.975)*sigma)))
+  up_int = c(up_int, exp(beta+qnorm(.975)*sigma)/(1+exp(beta+qnorm(.975)*sigma)))
+
+}
+
+adjusted_p = p.adjust(raw_p, method = "BH")
+
+Alleles = sort(unique(male_df$allele))
+
+names(raw_p) = sort(unique(male_df$allele)) # Names is name or row, unique only picks unique value from dataset
+names(beta_list) = sort(unique(male_df$allele))
+names(est_coef) = sort(unique(male_df$allele))
+names(Alleles) = sort(unique(male_df$allele))
+names(adjusted_p) = sort(unique(male_df$allele))
+names(low_int) = sort(unique(male_df$allele))
+names(up_int) = sort(unique(male_df$allele))
+
+nanalysis_summary_full = data.frame(allele = Alleles, logit_of_percentage = beta_list, estimated_transmission_percentage = est_coef, lower_confidence_interval = low_int, upper_confidence_interval = up_int, raw_p_value = raw_p, adj_p_value = adjusted_p)
+
+```
+
+
+```{r}
+sum_male <- male_df %>%
+  mutate(rate = number_of_GFP_kernels/(number_of_GFP_kernels + number_of_WT_kernels)) %>%
+  group_by(allele) %>%
+  summarize(mean = mean(rate), 
+            sd = sd(rate),
+            count = n(),
+            totalkernel = sum(number_of_GFP_kernels) + sum(number_of_WT_kernels),
+            totalGFP = sum(number_of_GFP_kernels),
+            totalWT = sum(number_of_WT_kernels))
+```
+
+
+```{r}
+male_sum_full <- merge(nanalysis_summary_full, sum_male, by = "allele")
+```
+
+
+```{r}
+ggplot(data = male_sum_full, aes(x=estimated_transmission_percentage, y=adj_p_value)) + 
+geom_point(color='#000000', fill='#0900b0',shape=21,size=1.8,alpha=0.8) +
+xlab("Est. Transmission Rate") + ylab("p-value (adjusted)") + scale_y_reverse() + 
+geom_hline(yintercept=0.05,linetype='dashed', color="red") +
+ggtitle("Transmission Rate GLM")+                                                                                                                                                                              
+theme(panel.background = element_rect(fill = '#f3f3f3'), 
+plot.margin = margin(5,10,5,10) , legend.position="none", plot.title = element_text(hjust = 0.5, size=18),
+axis.title = element_text(size=14), axis.text = element_text(size = 12) )
+
+#ggsave("transmission_GLM_male.pdf", width= 4, height  = 3.4, units = "in")
+ggsave("transmission_GLM_male.png", width= 4, height  = 3.4, units = "in", dpi=300)
+```
+
+
+```{r}
+write.table(male_sum_full, file = "transmission_rate_glm_male.tsv", sep = "\t", row.names=FALSE) 
+```
+
+# Analysis on female data
+```{r}
+
+# Using quasi binomial log model
+
+full_mod <- glm(cbind(number_of_GFP_kernels, number_of_WT_kernels) ~
+                                as.factor(allele),
+                              data = female_df,
+                              family = quasibinomial(link = "logit"))
+print(full_mod)
+
+S = vcov(full_mod)
+```
+
+```{r}
+raw_p = coef(summary(full_mod))[1,4]
+beta_list = coef(summary(full_mod))[1,1]
+est_coef = (exp(beta_list)/(1 + exp(beta_list)))
+low_int = exp(beta_list - qnorm(.975)*coef(summary(full_mod))[1,2])/(1+exp(beta_list - qnorm(.975)*coef(summary(full_mod))[1,2]))
+up_int = exp(beta_list + qnorm(.975)*coef(summary(full_mod))[1,2])/(1+exp(beta_list + qnorm(.975)*coef(summary(full_mod))[1,2]))
+sigma1 = coef(summary(full_mod))[1,2] #this is correct SD
+sigma2 = sqrt(S[1,1]) #this results in the same SD
+
+```
+
+```{r}
+for (i in 2:nrow(coef(summary(full_mod)))){ # Starting at 2 because we already collected the first one...
+  beta = coef(summary(full_mod))[1,1] + coef(summary(full_mod))[i,1] # Intercept + Allele coefficient .
+  sigma = sqrt(sum(c(S[1,i], S[i,1], S[1,1], S[i,i])))
+  raw_p = c(raw_p, 2*(1-pnorm(abs((beta)/sigma))))
+  beta_list = c(beta_list, beta)
+  est_coef = c(est_coef, (exp(beta)/(1+exp(beta))))
+  low_int = c(low_int, exp(beta-qnorm(.975)*sigma)/(1+exp(beta-qnorm(.975)*sigma)))
+  up_int = c(up_int, exp(beta+qnorm(.975)*sigma)/(1+exp(beta+qnorm(.975)*sigma)))
+  
+}
+
+adjusted_p = p.adjust(raw_p, method = "BH")
+
+Alleles = sort(unique(female_df$allele))
+
+names(raw_p) = sort(unique(female_df$allele)) # Names is name or row, unique only picks unique value from dataset
+names(beta_list) = sort(unique(female_df$allele))
+names(est_coef) = sort(unique(female_df$allele))
+names(Alleles) = sort(unique(female_df$allele))
+names(adjusted_p) = sort(unique(female_df$allele))
+names(low_int) = sort(unique(female_df$allele))
+names(up_int) = sort(unique(female_df$allele))
+
+nanalysis_summary_full = data.frame(allele = Alleles, logit_of_percentage = beta_list, estimated_transmission_percentage = est_coef, lower_confidence_interval = low_int, upper_confidence_interval = up_int, raw_p_value = raw_p, adj_p_value = adjusted_p)
+
+```
+
+```{r}
+sum_fem <- female_df %>%
+  mutate(rate = number_of_GFP_kernels/(number_of_GFP_kernels + number_of_WT_kernels)) %>%
+  group_by(allele) %>%
+  summarize(mean = mean(rate), 
+            sd = sd(rate),
+            count = n(),
+            totalkernel = sum(number_of_GFP_kernels) + sum(number_of_WT_kernels),
+            totalGFP = sum(number_of_GFP_kernels),
+            totalWT = sum(number_of_WT_kernels))
+```
+
+```{r}
+female_sum_full <- merge(nanalysis_summary_full, sum_fem, by = "allele")
+```
+
+
+```{r}
+ggplot(data =female_sum_full, aes(x=estimated_transmission_percentage, y=adj_p_value)) + 
+geom_point(color='#000000', fill='#0900b0',shape=21,size=1.8,alpha=0.8) +
+xlab("Est. Transmission Rate") + ylab("p-value (adjusted)") + scale_y_reverse() + 
+geom_hline(yintercept=0.05,linetype='dashed', color="red") +
+ggtitle("Transmission Rate GLM")+                                                                                                                                                                              
+theme(panel.background = element_rect(fill = '#f3f3f3'), 
+plot.margin = margin(5,10,5,10) , legend.position="none", plot.title = element_text(hjust = 0.5, size=18),
+axis.title = element_text(size=14), axis.text = element_text(size = 12) )
+
+#ggsave("transmission_GLM_female.pdf", width= 4, height  = 3.4, units = "in")
+#ggsave("transmission_GLM_female.png", width= 4, height  = 3.4, units = "in", dpi=300)
+```
+
+
+```{r}
+write.table(female_sum_full, file = "transmission_rate_glm_female.tsv", sep = "\t", row.names=FALSE) 
+```
+
+```{r}
+print("done")
+```

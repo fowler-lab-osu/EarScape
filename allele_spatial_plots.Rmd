@@ -1,0 +1,459 @@
+---
+title: "Spatial Plots"
+author: "Michelle Bang"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Part 0: Loading all of my files and functions
+
+
+```{r}
+#Load functions for spatial analysis. 
+source("Helper_Code/xml_to_coordinates.R") #Converts old hand-counted .xml files into coordinates. 
+source("Helper_Code/coordinates_to_xbins.R") #Converts coordinates into bins/sections. 
+source("Helper_Code/xml_to_coord_edited.R") #Converts NEW EarVision .xml files into coordinates. 
+```
+
+```{r}
+#Load neccessary libraries. 
+library(ggplot2)
+library(tidyverse)
+library(ggpubr)
+library(gridExtra)
+library(qvalue)
+library(scales)
+```
+
+```{r}
+#Function to change xml to coordinates depending on the file type. 
+xml_to_coord <- function(input_data_path){
+  if (grepl("\\_inference.xml", input_data_path)){ #Takes in EarVision files. 
+    xml_to_coordinates2(input_data_path)
+  } else{ #Takes in old hand-counted files. 
+    xml_to_coordinates(input_data_path) 
+  }
+}
+```
+
+```{r}
+cross="Ear"
+list_alleles <- list.dirs(paste("SpatialAnalysis_Alleles_58/",cross,"_Crosses/", sep=""), full.names = FALSE, recursive = FALSE)
+```
+
+```{r}
+filenames = vector(mode='list', length= length(list_alleles))
+```
+
+```{r}
+for (i in 1:length(list_alleles)){
+  filenames[[i]] = vector(mode='list', length= 3)
+}
+```
+
+```{r}
+for (i in 1:length(list_alleles)){
+  filenames[[i]][[1]] <- list_alleles[[i]] #Getting name of allele
+  filenames[[i]][[2]] = list.files(paste0(paste("SpatialAnalysis_Alleles_58/",cross,"_Crosses/", sep=""), list_alleles[[i]]), pattern="*.xml", full.names=TRUE) #Getting path to observation.
+  filenames[[i]][[3]] = as.list(basename(filenames[[i]][[2]])) #Extracting the name of obs.
+}
+
+dir.create("./Allele_Spatial_Plots")
+
+```
+
+
+
+```{r}
+#Create data frame for ear-by-ear output used later for peak analysis
+peakData = data.frame(matrix(nrow = 0, ncol = 10))
+colnames(peakData) <- c("Allele", "Ear", "Quad_pval", "Lin_inc_pval", "Lin_dec_pval", "B0", "B1", "B2", "Coord_start","Coord_end")
+
+print(peakData)
+```
+
+
+```{r}
+for (n in 1:length(filenames)){
+  coords = lapply(filenames[[n]][[2]], xml_to_coord)
+
+  #Bar graph of WT vs. GFP for all observations.
+  pdf(file = paste("./Allele_Spatial_Plots/", filenames[[n]][[1]], "_coord_plots.pdf", sep = ""),
+    width = 5.8,
+    height = 3,)
+
+  for (i in 1:length(filenames[[n]][[2]])) {
+
+    #Scatter plot of GFP vs. WT for all observations. 
+    print(ggplot(data = coords[[i]], aes(x=x, y=y, color = type)) +
+        geom_point(size=2.1)  +
+        ggtitle(filenames[[n]][[3]][[i]]) + 
+  scale_color_manual(values = c("#bbff14", "#b546e7")) +
+        theme(text = element_text(size=18),panel.border=element_rect(colour = "#7b7b7b", fill=NA, linewidth=1.3),
+        axis.ticks = element_line(colour = "#7b7b7b"), axis.title = element_text(size = 15),
+        plot.title = element_text(size=10,hjust = 0.5), legend.position="none", panel.background = element_rect(fill = '#ffffff')))
+    
+  }
+  
+  dev.off()
+}
+```
+
+```{r}
+for (n in 1:length(filenames)){
+  coords = lapply(filenames[[n]][[2]], xml_to_coord)
+
+  #Removes faulty xml from the files. 
+
+  sequence = rev(seq(1:length(coords)))
+
+  #Checks if there will be an error when coordinates_to_xbins runs. If there is, it removes it from filenames 
+  for (i in sequence) {
+    if (nrow(coords[[i]]) == 0)  {
+      filenames[[n]][[2]] = filenames[[n]][[2]][-i]
+      filenames[[n]][[3]] = filenames[[n]][[3]][-i]
+    }
+  }
+  
+  #The 0 observation issue is caused by files that don't use 1 and 2 as their marker numbers which is a requirement for xml_to_coordinates
+  bin_data = lapply(coords, function(x) {coordinates_to_xbins(x,16)} )
+  
+  #Start chopping off the ends
+  sequence = seq(1,length(bin_data))
+  
+  #Creating an empty list
+  bin_ed = list()
+  
+  for (i in sequence) {
+      bin_ed[[i]] = data.frame("bins" = bin_data[[i]]$bins[2:15], "WT" = bin_data[[i]]$WT[2:15] , "GFP" = bin_data[[i]]$GFP[2:15])
+  }
+  
+  titleList <- filenames[[n]][[3]]
+  
+  pdf(file = paste("./Allele_Spatial_Plots/", filenames[[n]][[1]], "_bin_graphs.pdf", sep = ""),
+    width = 5.8,
+    height = 3,)
+
+  for (i in 1:length(filenames[[n]][[2]])) {
+    final_df <- bin_ed[[i]]
+    #adding a column for bins 1-14 instead of numeric
+      bins1 = c(1,2,3,4,5,6,7,8,9,10,11,12,13,14)
+      final_df$bins <- bins1
+        
+      #ggplot of the WT with respect to x
+      print(ggplot(data = final_df, aes(x = bins, y = WT)) +
+            geom_col()  +
+            ggtitle(titleList[[i]]) +
+            scale_x_continuous(breaks=c(1,14))+
+            #ylim(0,30) +
+            theme(plot.title = element_text(hjust = 0.5)))
+       
+      #ggplot of the GFP with respect to x
+      print(ggplot(data = final_df, aes(x = bins, y = GFP)) +
+            geom_col()  +
+            ggtitle(titleList[[i]]) +
+            scale_x_continuous(breaks=c(1,14))+
+            #ylim(0,30) +
+            theme(plot.title = element_text(hjust = 0.5))) 
+      
+      #adding in plot with both wt/gfp into one
+      test_long_df <- pivot_longer(final_df, 
+                                   col = c(2,3),
+                                   names_to = "type",
+                                   values_to = "value")
+
+      #colored and horizontal version of stacked bar graph of wt/gfp
+      print(ggplot(data = test_long_df, aes(x = bins, y = value, fill = type)) +
+            geom_col() +
+            ggtitle(titleList[[i]]) +
+            ylab("Kernel Count")+
+            xlab("Bin")+
+            scale_fill_manual(values = c("#bbff14", "#b546e7")) +
+            scale_x_continuous(breaks=c(1,14))+
+            theme(text = element_text(size=18), panel.border=element_rect(colour = "#7b7b7b", fill=NA, linewidth=1.3),
+             axis.ticks = element_line(colour ="#7b7b7b"), axis.title = element_text(size=13),
+            plot.title = element_text(hjust = 0.5, size=10), legend.position="none", panel.background = element_rect(fill = '#ffffff')))
+  }
+  
+  dev.off()
+}
+```
+
+```{r}
+for (n in 1:length(filenames)){
+  coords = lapply(filenames[[n]][[2]], xml_to_coord)
+
+  allele <- filenames[[n]][[1]]
+
+
+  #Removes faulty xml from the files. 
+  sequence = rev(seq(1:length(coords)))
+
+#Checks if there will be an error when coordinates_to_xbins runs. If there is, it removes it from filenames 
+for (i in sequence) {
+  if (nrow(coords[[i]]) == 0)  {
+    filenames[[n]][[2]] = filenames[[n]][[2]][-i]
+    filenames[[n]][[3]] = filenames[[n]][[3]][-i]
+  }
+}
+
+#The 0 observation issue is caused by files that don't use 1 and 2 as their marker numbers which is a requirement for xml_to_coordinates
+bin_data = lapply(coords, function(x) {coordinates_to_xbins(x,16)} )
+
+sequence = rev(seq(1:length(bin_data)))
+
+#Removes the files that break the glm, namely the ears with only one kind of kernel allele. At most removes the cases with very few WT or GFP which are by definition odd ears. 
+
+for (i in sequence) {
+  sumWT = sum(bin_data[[i]]$WT)
+  sumGFP = sum(bin_data[[i]]$GFP)
+    if ((sumWT < 5) | (sumGFP < 5)) {
+      bin_data = bin_data[-i]
+      filenames[[n]][[2]] = filenames[[n]][[2]][-i]
+      filenames[[n]][[3]] = filenames[[n]][[3]][-i]
+    }
+}
+
+#The 0 observation issue is caused by files that don't use 1 and 2 as their marker numbers which is a requirement for xml_to_coordinates
+full_data = lapply(coords, function(x) {coordinates_to_xbins(x,1)} )
+
+sequence = rev(seq(1:length(full_data)))
+
+#Removes the files that break the glm, namely the ears with only one kind of kernel allele. At most removes the cases with very few WT or GFP which are by definition odd ears. 
+
+for (i in sequence) {
+  sumWT = sum(full_data[[i]]$WT)
+  sumGFP = sum(full_data[[i]]$GFP)
+    if ((sumWT < 5) | (sumGFP < 5)) {
+      full_data = full_data[-i]
+    }
+}
+
+TransmissionRate <- c()
+for (i in 1:length(filenames[[n]][[2]])) {
+  TransmissionRate <- append(TransmissionRate, full_data[[i]]$GFP/(full_data[[i]]$GFP + full_data[[i]]$WT))
+}
+
+#Start chopping off the ends
+sequence = seq(1,length(bin_data))
+
+#Creating an empty list
+bin_ed = list()
+
+for (i in sequence) {
+    bin_ed[[i]] = data.frame("bins" = bin_data[[i]]$bins[2:15], "WT" = bin_data[[i]]$WT[2:15] , "GFP" = bin_data[[i]]$GFP[2:15])
+}
+
+#turn the data into a glm
+ends_glm_data = lapply(bin_ed, function(x) {glm(cbind(GFP,WT) ~ bins,family = quasibinomial(link = "logit"), data = x)})
+
+#extract the p values
+ends_pv_data = lapply(ends_glm_data, function(x) {(summary(x)$coefficients)})
+
+
+ends_p_data = lapply(ends_pv_data, function(x) {x[8]})
+
+t_stats = lapply(ends_pv_data, function(x) {x[6]})
+lower_tail_pvals = lapply(t_stats, function(x) {pt(x, df=12, lower.tail = TRUE)}) #probs P[<t]  
+upper_tail_pvals = lapply(t_stats, function(x) {pt(x, df=12, lower.tail = FALSE)}) #probs P[>=t]  
+
+
+beta0s = lapply(ends_pv_data, function(x) {x[1]})
+beta1s = lapply(ends_pv_data, function(x) {x[2]})
+
+#print(lapply(ends_glm_data, function(x) {(summary(x)$coefficients)}))
+
+#comment this out to look at the non adjusted values, you can swap the method by changing 'method = fdr'
+adj_p_data = p.adjust(ends_p_data, method = "fdr")
+
+adj_p_df <- data.frame(matrix(unlist(adj_p_data), nrow=length(adj_p_data), byrow=T))
+names(adj_p_df)[names(adj_p_df) == colnames(adj_p_df[1])] = "adj_p_value"
+
+ends_p_df <- data.frame(matrix(unlist(ends_p_data), nrow=length(ends_p_data), byrow=T))
+names(ends_p_df)[names(ends_p_df) == colnames(ends_p_df[1])] = "p_value"
+
+tester <- data.frame(bin_ed[1]) %>%
+  mutate(rate = GFP/(WT + GFP))
+bin_w_trate_ed = list(tester)
+for(i in 2:length(full_data)) {
+  tester <- data.frame(bin_ed[i]) %>%
+    mutate(rate = GFP/(WT + GFP)) %>%
+    mutate(rate = if_else(is.na(rate), 0, rate)) #this is not working?? so extra check down below
+  test = list(tester)
+  bin_w_trate_ed = append(bin_w_trate_ed, test)
+}
+
+for(i in 1:length(bin_ed)) {
+  bin_w_trate_ed[[i]] <- bin_w_trate_ed[[i]] %>%
+    mutate(rate = if_else(is.na(rate), 0, rate))
+}
+
+titleList <- filenames[[n]][[3]]
+
+
+#for quadratic glm
+bins_squared_ends = bin_ed
+bin_sq_data_ends = bin_ed
+sequence = seq(1, length(bin_ed))
+sequence2  = seq(1, 14)
+
+for (i in sequence) {
+  for (j in sequence2) {
+  bins_squared_ends[[i]]$bins[j] = (bin_sq_data_ends[[i]]$bins[j])^2
+  }
+  bin_sq_data_ends[[i]] = data.frame(bin_sq_data_ends[[i]],bins_squared_ends[[i]]$bins)
+}
+
+sq_glm_data_ends = lapply(bin_sq_data_ends, function(x) {glm(cbind(GFP,WT) ~ bins + bins_squared_ends..i...bins,family = quasibinomial(link = "logit"), data = x)})
+sq_ends_pv_data = lapply(sq_glm_data_ends, function(x) {(summary(x)$coefficients)})
+
+#print(lapply(sq_glm_data_ends, function(x) {(summary(x)$coefficients)}))
+
+quad_beta0s = lapply(sq_ends_pv_data, function(x) {x[1]})
+quad_beta1s = lapply(sq_ends_pv_data, function(x) {x[2]})
+quad_beta2s = lapply(sq_ends_pv_data, function(x) {x[3]})
+
+#For ANOVA to get quad GLM p val
+
+#Creating null model
+null_ends_model <- lapply(bin_ed, function(x) {glm(cbind(GFP,WT) ~ 1,family = quasibinomial(link = "logit"), data = x)})
+anova_ends_data <- vector(length = length(bin_ed))
+
+for (i in 1:length(bin_ed)){
+  anova_ends_data[i] <- anova(null_ends_model[[i]], sq_glm_data_ends[[i]], test = "F")$"Pr(>F)"[2]
+}
+
+anova_ends_df <- as.data.frame(anova_ends_data)
+row.names(anova_ends_df) <- 1:length(bin_ed)
+
+
+#for making meta-ear image
+for(z in 1:length(bin_w_trate_ed)){
+  bin_w_trate_ed[[z]]["ear"] <- filenames[[n]][[3]][[z]]
+
+}
+bin_data_df <- Reduce(rbind, bin_w_trate_ed) 
+
+
+pdf(file = paste("./Allele_Spatial_Plots/", filenames[[n]][[1]], "_xcoordsbytr_linear_ends.pdf", sep = ""),
+    width = 5.8,
+    height = 3,)
+
+#Scatterplot of transmission rate vs. bins/x-coord with line fitted.
+for (i in 1:length(bin_ed)) {
+
+  beta0 <- beta0s[[i]]
+  beta1 <- beta1s[[i]]
+  glm_equation <- function(x){exp(beta0 + beta1*x)/(1 + exp(beta0 + beta1*x))}
+ 
+  #using fitted GLM to plot trend line
+  print(ggplot(data = bin_w_trate_ed[[i]], aes(x=bins, y = rate)) +
+          geom_function(fun = glm_equation, colour = "blue", linewidth=1)+
+          geom_point() +
+          ggtitle(titleList[[i]]) + 
+          theme(plot.title = element_text(hjust = 0.5)) +
+          labs(x = "Bins/X-coord", y = "Transmission Rate") + theme(panel.background = element_rect(fill = '#f3f3f3')))           
+}
+dev.off()
+
+unit = "in"
+w = 5.8
+h = 3
+dpi=300
+
+#meta_ear image with linear GLM coeffs
+g <- ggplot(data = bin_data_df, aes(x=bins, y = rate)) +
+          ggtitle(filenames[[n]][[1]]) + 
+          ylim(0.0,0.8) +
+          theme(plot.title = element_text(hjust = 0.5),legend.position="none",axis.title = element_text(size=14)) +
+          labs(x = "Bins/X-coord", y = "Transmission Rate") + theme(panel.background = element_rect(fill = '#f3f3f3'))
+
+linear_trends_for_plot <- data.frame("beta0s" = unlist(beta0s), "beta1s" = unlist(beta1s), "dec_pvals" = unlist(lower_tail_pvals), "inc_pvals" = unlist(upper_tail_pvals), "group" = "No_Trend")
+linear_trends_for_plot$group <- ifelse(linear_trends_for_plot$dec_pvals > 0.05 & linear_trends_for_plot$inc_pvals<=0.05, "Inc", linear_trends_for_plot$group )
+linear_trends_for_plot$group <- ifelse(linear_trends_for_plot$dec_pvals <= 0.05 & linear_trends_for_plot$inc_pvals>0.05, "Dec", linear_trends_for_plot$group )
+
+#https://stackoverflow.com/questions/76628230/plot-multiple-stat-functions-on-one-ggplot-using-aesthetics
+#g <- g + Map(function(beta0, beta1,group) {
+    #stat_function(fun = function(x){exp(beta0 + beta1*x)/(1 + exp(beta0 + beta1*x))}, aes(color=group))
+    #}, linear_trends_for_plot$beta0s,linear_trends_for_plot$beta1s,linear_trends_for_plot$group) + scale_color_manual(values = c("black","blue","orange"))
+
+no_trends <- linear_trends_for_plot %>% filter(group=="No_Trend")
+inc_trends <- linear_trends_for_plot %>% filter(group=="Inc")
+dec_trends <-  linear_trends_for_plot %>% filter(group=="Dec")
+
+g <- g + Map(function(beta0, beta1) {
+    stat_function(fun = function(x){exp(beta0 + beta1*x)/(1 + exp(beta0 + beta1*x))}, color = "#989898", alpha = 1, lwd = 0.7)
+    }, no_trends$beta0s,no_trends$beta1s) 
+
+g <- g + Map(function(beta0, beta1) {
+    stat_function(fun = function(x){exp(beta0 + beta1*x)/(1 + exp(beta0 + beta1*x))}, color = "#dc0000", alpha = 1, lwd = 0.7)
+    }, dec_trends$beta0s,dec_trends$beta1s) 
+
+g <- g + Map(function(beta0, beta1) {
+    stat_function(fun = function(x){exp(beta0 + beta1*x)/(1 + exp(beta0 + beta1*x))}, color = "#001eff", alpha = 1, lwd = 0.7)
+    }, inc_trends$beta0s,inc_trends$beta1s) 
+
+ggsave(paste("./Allele_Spatial_Plots/",filenames[[n]][[1]],"_trends_lin_glm.png",sep=""), units=unit, width=w, height=h, dpi=dpi)
+ggsave(paste("./Allele_Spatial_Plots/",filenames[[n]][[1]],"_trends_lin_glm.pdf",sep=""), units=unit, width=w, height=h)
+
+#Quadratic Plots
+pdf(file = paste("./Allele_Spatial_Plots/", filenames[[n]][[1]], "_xcoordsbytr_quad_ends.pdf", sep = ""),
+    width = 5.8,
+    height = 3,)
+
+#Scatterplot of transmission rate vs. bins/x-coord with quadratic line fitted.
+for (i in 1:length(bin_ed)) {
+  
+  quad_beta0 <- quad_beta0s[[i]]
+  quad_beta1 <- quad_beta1s[[i]]
+  quad_beta2 <- quad_beta2s[[i]]
+
+  glm_equation <- function(x){exp(quad_beta0 + quad_beta1*x + quad_beta2*x*x)/(1 + exp(quad_beta0 + quad_beta1*x + quad_beta2*x*x))}
+ 
+  #plots quadratic function fit by GLM
+  print(ggplot(data = bin_w_trate_ed[[i]], aes(x=bins, y = rate)) +
+          geom_function(fun = glm_equation, colour = "blue", linewidth=1) +
+          geom_point() +
+          ggtitle(titleList[[i]]) + 
+          theme(plot.title = element_text(hjust = 0.5)) +
+          labs(x = "Bins/X-coord", y = "Transmission Rate") + theme(panel.background = element_rect(fill = '#f3f3f3')))
+
+
+  ear_coords <- coords[[i]]
+  min_coord <- min(ear_coords["x"])
+  max_coord <- max(ear_coords["x"])
+
+
+  decreasing_linear_p <- lower_tail_pvals[[i]]
+  increasing_linear_p <- upper_tail_pvals[[i]]
+
+  peakRow <- data.frame("Allele" = allele, "Ear" = titleList[[i]], "Quad_pval" = anova_ends_df[i,], 
+  "Lin_inc_pval"= increasing_linear_p,"Lin_dec_pval"= decreasing_linear_p, 
+  "B0" = quad_beta0, "B1" = quad_beta1, "B2" = quad_beta2, "Coord_start" =  min_coord, "Coord_end" = max_coord)
+
+  peakData <- rbind(peakData, peakRow)
+
+}
+dev.off()
+
+}
+
+```
+
+```{r}
+dir.create("./Posthoc_Analysis")
+
+if(cross=="Pollen"){
+  write.csv(peakData, "Trend_Count_Analysis/for_posthoc_analysis_pollen.csv", row.names=FALSE)
+} else {
+  write.csv(peakData, "Trend_Count_Analysis/for_posthoc_analysis_ear.csv", row.names=FALSE)
+}
+```
+
+```{r}
+print("done")
+```
