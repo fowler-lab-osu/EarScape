@@ -1,9 +1,5 @@
 ---
-<<<<<<<< HEAD:spatial_analysis_GLM.Rmd
 title: "Spatial Analysis GLM"
-========
-title: "Spatial Analysis for Paper (Cleaned Version)"
->>>>>>>> e17f55d753ec61f3896a3749679b8cc4d220e556:spatial_analysis_cleaned.Rmd
 author: "Michelle Bang"
 date: "`r Sys.Date()`"
 output: html_document
@@ -16,24 +12,14 @@ knitr::opts_chunk$set(echo = TRUE)
 Part 0: Loading all of my files and functions
 
 ```{r}
-<<<<<<<< HEAD:spatial_analysis_GLM.Rmd
+#Load functions for spatial analysis
 source("Helper_Code/xml_to_coordinates.R")
 source("Helper_Code/coordinates_to_xbins.R")
 source("Helper_Code/xml_to_coord_edited.R")
-
-library(ggplot2)
-library(tidyverse)
-library(ggpubr)
-========
-#Load functions for spatial analysis. 
-source("../xml_to_coordinates.R") #Converts old hand-counted .xml files into coordinates. 
-source("../coordinates_to_xbins.R") #Converts coordinates into bins/sections. 
-source("../xml_to_coord_edited.R") #Converts NEW EarVision .xml files into coordinates. 
->>>>>>>> e17f55d753ec61f3896a3749679b8cc4d220e556:spatial_analysis_cleaned.Rmd
 ```
 
 ```{r}
-#Load necessary libraries. 
+#Load necessary libraries
 library(ggplot2)
 library(tidyverse)
 library(ggpubr)
@@ -44,18 +30,16 @@ library(scales)
 ```{r}
 #Function to change xml to coordinates depending on the file type. 
 xml_to_coord <- function(input_data_path){
-  #print(input_data_path)
-  if (grepl("\\_inference.xml", input_data_path)){ #Takes in EarVision files. 
+  if (grepl("\\_inference.xml", input_data_path)){ #Takes in EarVision files.
     xml_to_coordinates2(input_data_path)
-  } else{ #Takes in old hand-counted files. 
-    xml_to_coordinates(input_data_path) 
+  } else{ #Takes in old hand-counted files.
+    xml_to_coordinates(input_data_path)
   }
 }
 ```
 
 ```{r}
 #Getting the all the .xml files. Divided into folders depending on the allele.
-<<<<<<<< HEAD:spatial_analysis_GLM.Rmd
 cross <- "ear"
 
 if(cross=="ear"){
@@ -64,9 +48,6 @@ if(cross=="ear"){
 if(cross=="pollen"){
   list_alleles <- list.dirs("./SpatialAnalysis_Alleles_58/Pollen_Crosses", full.names = FALSE, recursive = FALSE)
 }
-========
-list_alleles <- list.dirs("{insert path to folders of .xml files}", full.names = FALSE, recursive = FALSE)
->>>>>>>> e17f55d753ec61f3896a3749679b8cc4d220e556:spatial_analysis_cleaned.Rmd
 ```
 
 ```{r}
@@ -86,16 +67,12 @@ for (i in 1:length(list_alleles)){
   #Getting name of allele
   filenames[[i]][[1]] <- list_alleles[[i]] 
   #Getting path to observation.
-<<<<<<<< HEAD:spatial_analysis_GLM.Rmd
   if(cross=="ear"){
     filenames[[i]][[2]] = list.files(paste0("./SpatialAnalysis_Alleles_58/Ear_Crosses/", list_alleles[[i]]), pattern="*.xml", full.names=TRUE) 
   }
   if(cross=="pollen"){
     filenames[[i]][[2]] = list.files(paste0("./SpatialAnalysis_Alleles_58/Pollen_Crosses/", list_alleles[[i]]), pattern="*.xml", full.names=TRUE) 
   }
-========
-  filenames[[i]][[2]] = list.files(paste0("{insert path to folders of .xml files}", list_alleles[[i]]), pattern="*.xml", full.names=TRUE) 
->>>>>>>> e17f55d753ec61f3896a3749679b8cc4d220e556:spatial_analysis_cleaned.Rmd
   #Extracting the name of observation.
   filenames[[i]][[3]] = as.list(basename(filenames[[i]][[2]])) 
 }
@@ -119,7 +96,7 @@ sumStats[1] = list_alleles
 
 
 ```{r}
-#Create mega dataframe to contain information for all n alleles.
+#Create mega dataframe to contain information for all alleles.
 megaDf = data.frame()
 anova_comp_full = data.frame()
 ```
@@ -133,11 +110,7 @@ stat_sum[1] = list_alleles
 
 
 ```{r}
-<<<<<<<< HEAD:spatial_analysis_GLM.Rmd
 #Main code looped for all alleles in folder. 
-========
-#Main code looped for n alleles. 
->>>>>>>> e17f55d753ec61f3896a3749679b8cc4d220e556:spatial_analysis_cleaned.Rmd
 
 for (n in 1:length(filenames)){
   print(filenames[[n]][[2]])
@@ -147,7 +120,7 @@ for (n in 1:length(filenames)){
 
   sequence = rev(seq(1:length(coords)))
 
-#Checks if there will be an error when coordinates_to_xbins runs. If there is, it removes it from filenames.
+#Checks if there will be an error when coordinates_to_xbins runs. If there is, it removes it from filenames. 
 for (i in sequence) {
   if (nrow(coords[[i]]) == 0)  {
     filenames[[n]][[2]] = filenames[[n]][[2]][-i]
@@ -171,7 +144,7 @@ for (i in sequence) {
     }
 }
 
-#The 0 observation issue is caused by files that don't use 1 and 2 as their marker numbers which is a requirement for xml_to_coordinates.
+#The 0 observation issue is caused by files that don't use 1 and 2 as their marker numbers which is a requirement for xml_to_coordinates
 full_data = lapply(coords, function(x) {coordinates_to_xbins(x,1)} )
 
 sequence = rev(seq(1:length(full_data)))
@@ -192,13 +165,9 @@ for (i in 1:length(filenames[[n]][[2]])) {
   TransmissionRateAllBins  <- append(TransmissionRateAllBins , full_data[[i]]$GFP/(full_data[[i]]$GFP + full_data[[i]]$WT))
 }
 
-<<<<<<<< HEAD:spatial_analysis_GLM.Rmd
 
 
-#Start chopping off the ends
-========
 #Start chopping off the ends.
->>>>>>>> e17f55d753ec61f3896a3749679b8cc4d220e556:spatial_analysis_cleaned.Rmd
 sequence = seq(1,length(bin_data))
 
 #Creating an empty list.
@@ -208,7 +177,6 @@ for (i in sequence) {
     bin_ed[[i]] = data.frame("bins" = bin_data[[i]]$bins[2:15], "WT" = bin_data[[i]]$WT[2:15] , "GFP" = bin_data[[i]]$GFP[2:15])
 }
 
-<<<<<<<< HEAD:spatial_analysis_GLM.Rmd
 
 alleleGFP <- sum(do.call(rbind,bin_ed)$GFP)
 alleleWT <- sum(do.call(rbind,bin_ed)$WT)
@@ -217,17 +185,9 @@ alleleWT <- sum(do.call(rbind,bin_ed)$WT)
 ends_glm_data = lapply(bin_ed, function(x) {glm(cbind(GFP,WT) ~ bins,family = quasibinomial(link = "logit"), data = x)})
 
 #Extract the p values
-========
-#Turn the data into a glm.
-ends_glm_data = lapply(bin_ed, function(x) {glm(cbind(GFP,WT) ~ bins,family = quasibinomial(link = "logit"), data = x)})
-
-
-#Extract the p values.
->>>>>>>> e17f55d753ec61f3896a3749679b8cc4d220e556:spatial_analysis_cleaned.Rmd
 ends_pv_data = lapply(ends_glm_data, function(x) {(summary(x)$coefficients)})
 ends_p_data = lapply(ends_pv_data, function(x) {x[8]})
 
-<<<<<<<< HEAD:spatial_analysis_GLM.Rmd
 
 #lapply(ends_glm_data, function(x) {print(summary(x))})
 
@@ -242,9 +202,6 @@ linearCoeffVar = var(unlist(lapply(ends_pv_data, function(x){x['bins','Estimate'
 
 
 #Comment this out to look at the non adjusted values, you can swap the method by changing 'method = fdr'
-========
-#Comment this out to look at the non adjusted values, you can swap the method by changing 'method = fdr'.
->>>>>>>> e17f55d753ec61f3896a3749679b8cc4d220e556:spatial_analysis_cleaned.Rmd
 adj_p_data = p.adjust(ends_p_data,method = "fdr")
 
 adj_p_df <- data.frame(matrix(unlist(adj_p_data), nrow=length(adj_p_data), byrow=T))
@@ -270,11 +227,6 @@ linear_fisher_upper_p <- pchisq(fisher_upper, 2*length(unlist(upper_tail_pvals))
 #print(linear_fisher_upper_p)
 sumStats[n,2] =   linear_fisher_upper_p
 
-<<<<<<<< HEAD:spatial_analysis_GLM.Rmd
-========
-#Another way of accounting for multiple testing
-#Should give out percentage of null p-values (we are interested in 1-nullper).
->>>>>>>> e17f55d753ec61f3896a3749679b8cc4d220e556:spatial_analysis_cleaned.Rmd
 
 fisher_lower <- -2 * sum( log(unlist(lower_tail_pvals)))
 linear_fisher_lower_p <- pchisq(fisher_lower, 2*length(unlist(lower_tail_pvals)), lower.tail = FALSE, log.p = FALSE)
@@ -304,11 +256,11 @@ for (i in sequence) {
 #If this breaks just double check how R is naming the bin_squared column of bin_data and replace "bins_squared..i...bins" with that.
 sq_glm_data_ends = lapply(bin_sq_data_ends, function(x) {glm(cbind(GFP,WT) ~ bins + bins_squared_ends..i...bins,family = quasibinomial(link = "logit"), data = x)})
 
-#Creating null model.
+#Creating null model
 null_ends_model <- lapply(bin_ed, function(x) {glm(cbind(GFP,WT) ~ 1,family = quasibinomial(link = "logit"), data = x)})
 
 
-#Setting up empty list.
+#Setting up empty list
 anova_ends_data <- vector(length = length(bin_ed))
 
 for (i in 1:length(bin_ed)){
@@ -331,41 +283,20 @@ quad_glm_summary = lapply(sq_glm_data_ends, function(x) {(summary(x)$coefficient
 #print(quad_glm_summary)
 quadCoeffMean = mean(unlist(lapply(quad_glm_summary, function(x){x['bins_squared_ends..i...bins','Estimate']})))
 quadCoeffVar = var(unlist(lapply(quad_glm_summary, function(x){x['bins_squared_ends..i...bins','Estimate']})))
-#print("Quad Coeff Mean")
-#print(quadCoeffMean)
-#print("Quad Coeff Variance")
-#print(quadCoeffVar)
 
 
 fisherStat <- -2 * sum( log(unlist(anova_ends_data)))
 quad_fisher_p <- pchisq(fisherStat, 2*length(unlist(anova_ends_data)), lower.tail = FALSE,
             log.p = FALSE)
-#print("Quadratic fish: ")
-#print(quad_fisher_p)
 sumStats[n,4] = quad_fisher_p
 
 sumStats[n,5] = alleleGFP / (alleleGFP+alleleWT) #Transmission Rate for allele using kernel counts only from included bins
 
-<<<<<<<< HEAD:spatial_analysis_GLM.Rmd
-========
-#Another way of accounting for multiple testing.
-#Should give out percentage of null p-values (we are interested in 1-nullper).
-min_p = min(unlist(anova_ends_data)) + .05
-per_adj_anova = pi0est(unlist(anova_ends_data), lambda = seq(min_p, .5, length.out = 10), pi0.method = "bootstrap")
-truePropA = 1-per_adj_anova$pi0
-truePVal[n,4] = truePropA
->>>>>>>> e17f55d753ec61f3896a3749679b8cc4d220e556:spatial_analysis_cleaned.Rmd
 
 endsfullDf <- cbind(endsfullDf, anova_ends_df)
 
-#Saving all data as .tsv.
+#Saving all data as .tsv
 megaDf <- rbind(megaDf, endsfullDf)
-<<<<<<<< HEAD:spatial_analysis_GLM.Rmd
-========
-
-
-#Creating a summary of the coefficients found from the GLM. 
->>>>>>>> e17f55d753ec61f3896a3749679b8cc4d220e556:spatial_analysis_cleaned.Rmd
 coef_ends_glm <- c()
 for(k in 1:length(ends_glm_data)){
   coef_ends_glm <- append(coef_ends_glm, ends_glm_data[[k]]$coefficients[["bins"]])
@@ -379,7 +310,14 @@ for(k in 1:length(ends_glm_data)){
 se_ends_new <- se_ends^2
 stat_sum[n,3] = sqrt(sum(se_ends_new)/length(ends_glm_data)^2) 
 
+#var_ends <- c()
+#just take the variance of the coefficients
+#for(k in 1:length(ends_glm_data)){
+#  var_ends <- append(var_ends, vcov(ends_glm_data[[k]])[2,2])
+#}
 stat_sum[n,4] = var(coef_ends_glm)
+
+#stat_sum[n,4] = sum(var_ends)/length(ends_glm_data)^2 
 
 coef_ends_sq_glm <- c()
 
@@ -395,19 +333,16 @@ for(k in 1:length(sq_glm_data_ends)){
 se_sq_ends_new <- se_sq_ends^2
 stat_sum[n,6] = sqrt(sum(se_sq_ends_new)/length(sq_glm_data_ends)^2) 
 
-<<<<<<<< HEAD:spatial_analysis_GLM.Rmd
 
 #var_sq_ends <- c()
 #for(k in 1:length(sq_glm_data_ends)){
 #  var_sq_ends <- append(var_sq_ends, vcov(sq_glm_data_ends[[k]])[2,2])
 #}
 #stat_sum[n,7] = sum(var_sq_ends)/length(sq_glm_data_ends)^2
-========
->>>>>>>> e17f55d753ec61f3896a3749679b8cc4d220e556:spatial_analysis_cleaned.Rmd
 stat_sum[n,7] = var(coef_ends_sq_glm)
 
-
-#Model comparison between the linear and quadratic model. 
+#ANOVA to test between linear model and the quadratic model
+#Setting up empty list
 anova_comparison <- vector(length = length(bin_ed))
 
 for (i in 1:length(bin_ed)){
@@ -425,7 +360,7 @@ anova_comp_df <- anova_comp_df %>%
 
 anova_comp_full <- rbind(anova_comp_full, anova_comp_df)
 
-#Choosing only one p-value for pi0est based on model comparison test. 
+#Choosing only one p-value for pi0est based on model comparison test.
 pi0est_p_vals <- data.frame(matrix(nrow = length(bin_ed), ncol = 1)) 
 best_df <- data.frame(matrix(nrow = length(bin_ed), ncol = 8))
 colnames(best_df) <- c("Allele", "Name", "P_Value", "Model", "Adj_P_Value", "Lin_Coef", "Quad_Coef", "Inc_Dec")
@@ -440,51 +375,26 @@ for (i in 1:length(bin_ed)) {
     pi0est_p_vals[[1]][[i]] = ends_p_df[[1]][[i]]
     best_df[[3]][[i]] = ends_p_df[[1]][[i]]
     best_df[[4]][[i]] = "L"
-    best_df[[5]][[i]] = adj_p_df[[1]][[i]]
+    #add line about choosing adj pvalue for quad or lin
     lin_count = lin_count + 1
-    #Getting coefficient of GLM. 
+    #getting coef
     best_df[[6]][[i]] = coef_ends_glm[[i]]
     best_df[[7]][[i]] = "NA"
   } else {
     pi0est_p_vals[[1]][[i]] = anova_ends_df[[1]][[i]]
     best_df[[3]][[i]] = anova_ends_df[[1]][[i]]
     best_df[[4]][[i]] = "Q"
-    best_df[[5]][[i]] = adj_anova[[1]][[i]]
+    #add line about choosing adj pvalue for quad or lin
     quad_count = quad_count + 1
-    #Getting Coefficient of GLM. 
+    #getting coef
     best_df[[6]][[i]] = coef_ends_glm[[i]]
     best_df[[7]][[i]] = coef_ends_sq_glm[[i]]
   }
 }
 
-<<<<<<<< HEAD:spatial_analysis_GLM.Rmd
 min_p = min(unlist(pi0est_p_vals)) + .05
-========
 
-min_p = min(unlist(pi0est_p_vals)) + .05 #Getting the minimum p-value to set as the minimum lambda value for the following function. 
-per_adj_p_data = pi0est(unlist(pi0est_p_vals), lambda = seq(min_p, .5, length.out=10), pi0.method = "bootstrap")
-trueProp = 1-per_adj_p_data$pi0
-nullProp = per_adj_p_data$pi0
-pi_lamba = per_adj_p_data$pi0.lambda
-lambda = per_adj_p_data$lambda
-l = 0
-for (i in 1:length(lambda)) {
-  if (nullProp == pi_lamba[i]) {
-    l = lambda[i]
-    break
-  }
-}
-truePVal[n,2] = trueProp
-truePVal[n,5] = lin_count
-truePVal[n,6] = quad_count
-m = lin_count + quad_count
-SE <- sqrt((nullProp * (1-nullProp*(1-l)))/(m*(1-l)))
-truePVal[n,11] = SE
-truePVal[n,12] = trueProp - 1.645*SE
-truePVal[n,13] = trueProp + 1.645*SE
->>>>>>>> e17f55d753ec61f3896a3749679b8cc4d220e556:spatial_analysis_cleaned.Rmd
-
-#Getting proportion of adj p-values below .1 for all alleles. 
+#Getting proportion of adj p-values below .1 for all alleles.
 adj_p_comp = p.adjust(unlist(pi0est_p_vals), method = "fdr")
 adj_p_comp_df <- data.frame(matrix(unlist(adj_p_comp), nrow=length(adj_p_comp), byrow=T))
 names(adj_p_comp_df)[names(adj_p_comp_df) == colnames(adj_p_comp_df[1])] = "adj_p_value"
@@ -502,79 +412,10 @@ adj_l_cnt <- best_df %>%
 adj_q_cnt <- best_df %>%
   filter(Adj_P_Value < .1, Model == "Q") %>%
   summarize(count = n())
-
-<<<<<<<< HEAD:spatial_analysis_GLM.Rmd
-========
-truePVal[n,7] = adj_cnt[[1]][[1]]/(lin_count + quad_count)
-
-truePVal[n,8] = adj_l_cnt[[1]][[1]]
-
-truePVal[n,9] = adj_q_cnt[[1]][[1]]
-
-#total count
-truePVal[n,10] = lin_count + quad_count
-
-#Looking at the specific ears with small adj p-values, check if the trend is increasing or decreasing.
-for (i in 1:length(bin_ed)) {
-  if (best_df[[5]][[i]] < .1) {
-    if (best_df[[4]][[i]] == "L") {
-      if (best_df[[6]][[i]] > 0) {
-        best_df[[8]][[i]] = "I"
-      } else {
-        best_df[[8]][[i]] = "D"
-      }
-    } else {
-      best_df[[8]][[i]] = "Check"
-    }
-  } else {
-    best_df[[8]][[i]] = "NA"
-  }
 }
-
-megaBestDf <- rbind(megaBestDf, best_df)
->>>>>>>> e17f55d753ec61f3896a3749679b8cc4d220e556:spatial_analysis_cleaned.Rmd
-}
-
 ```
 
 
-<<<<<<<< HEAD:spatial_analysis_GLM.Rmd
-========
-```{r}
-#write.table(truePVal, file = "prop_true_pval_v052324.tsv", sep = "\t", row.names=FALSE) 
-```
-
-```{r}
-#write.table(megaBestDf, file = "incr_decr_v052324.tsv", sep = "\t", row.names=FALSE) 
-```
-
-```{r}
-#Checking which observations are significant for quad model. 
-megaBestDf %>%
-  filter(Inc_Dec == "Check")
-```
-
-```{r}
-#Filtering out significant observations. 
-sig_obs <- megaBestDf %>%
-  filter(Inc_Dec != "NA")
-```
-
-```{r}
-#write.table(sig_obs, file = "significant_observations_v052324.tsv", sep = "\t", row.names=FALSE)
-```
-
-```{r}
-#write.table(megaDf, file = "spatial_analysis_for_paper_v052324.tsv", sep = "\t", row.names=FALSE)
-```
-
-```{r}
-new_df <- read.table(file = "spatial_analysis_for_paper_v052324.tsv",
-                              header = TRUE,
-                              sep = '\t', na.strings = c("", " ", NA))
-```
-
->>>>>>>> e17f55d753ec61f3896a3749679b8cc4d220e556:spatial_analysis_cleaned.Rmd
 
 ```{r}
 #Creating table for mean transmission rate and observation count for each allele. 
@@ -587,16 +428,11 @@ mean_count <- megaDf %>%
 sumStats <- merge(x = mean_count, sumStats, by.x="allele", by.y="Allele")
 colnames(sumStats)[colnames(sumStats) == 'allele'] <- 'Allele'
 colnames(sumStats)[colnames(sumStats) == 'count'] <- 'Count'
-
 ```
 
 ```{r}
-<<<<<<<< HEAD:spatial_analysis_GLM.Rmd
 sumStats <- sumStats[,c("Allele","Count","Increasing Linear", "Decreasing Linear", "Quadratic", "Transmission Rate")]
 write.table(sumStats, file = paste("stat_sum_fisher_",cross,".tsv",sep=""), sep = "\t", row.names=FALSE)
-========
-#write.table(mean_count, file = "mean_count_paper_v052324.tsv", sep = "\t", row.names=FALSE)
->>>>>>>> e17f55d753ec61f3896a3749679b8cc4d220e556:spatial_analysis_cleaned.Rmd
 ```
 
 ```{r}
