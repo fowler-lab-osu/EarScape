@@ -1,4 +1,4 @@
-# spatial_analysis
+# EarScape Spatial Analysis
 Code for statistical spatial analysis for EarVision paper. 
 
 # Description of files 
