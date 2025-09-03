@@ -448,9 +448,9 @@ dev.off()
 dir.create("./Posthoc_Analysis")
 
 if(cross=="Pollen"){
-  write.csv(peakData, "Trend_Count_Analysis/for_posthoc_analysis_pollen.csv", row.names=FALSE)
+  write.csv(peakData, "Posthoc_Analysis/for_posthoc_analysis_pollen.csv", row.names=FALSE)
 } else {
-  write.csv(peakData, "Trend_Count_Analysis/for_posthoc_analysis_ear.csv", row.names=FALSE)
+  write.csv(peakData, "Posthoc_Analysis/for_posthoc_analysis_ear.csv", row.names=FALSE)
 }
 ```
 
