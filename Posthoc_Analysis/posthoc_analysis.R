@@ -1,6 +1,6 @@
 library(dplyr)
 
-print("Trend Count Analysis")
+print("Pattern Count Analysis")
 
 cross <- "ear"
 
@@ -24,7 +24,7 @@ out_df <- all_df[c('Allele', 'Ear', 'Quad_pval', 'Lin_inc_pval', 'Lin_dec_pval',
 write.csv(out_df,paste("posthoc_categories_",cross,".csv",sep=""), row.names = FALSE)
 
 trend_counts <- data.frame(matrix(nrow=58, ncol=10))
-colnames(trend_counts) <- c("Allele", "#Ears", "#IncLin", "#DecLin", "#TrueQuad", "#NoTrend", "%IncLin", "%DecLin", "%TrueQuad","%NoTrend")
+colnames(trend_counts) <- c("Allele", "#Ears", "#IncLin", "#DecLin", "#TrueQuad", "#NoPattern", "%IncLin", "%DecLin", "%TrueQuad","%NoPattern")
 
 ears_counts <- all_df %>% group_by(Allele) %>% count()
 
@@ -39,14 +39,14 @@ trend_counts['#Ears'] <- ears_counts['n']
 trend_counts['#IncLin'] <- inc_lin_counts['count']
 trend_counts['#DecLin'] <- dec_lin_counts['count']
 trend_counts['#TrueQuad'] <- quad_counts['count']
-trend_counts['#NoTrend']<- no_trend_counts['count']
+trend_counts['#NoPattern']<- no_trend_counts['count']
 
 trend_counts['%IncLin'] <- round(trend_counts['#IncLin'] / trend_counts['#Ears'], digits = 2)
 trend_counts['%DecLin'] <- round(trend_counts['#DecLin'] / trend_counts['#Ears'], digits = 2)
 trend_counts['%TrueQuad'] <- round(trend_counts['#TrueQuad'] / trend_counts['#Ears'], digits = 2)
-trend_counts['%NoTrend']<- round (trend_counts['#NoTrend'] / trend_counts['#Ears'], digits = 2)
+trend_counts['%NoPattern']<- round (trend_counts['#NoPattern'] / trend_counts['#Ears'], digits = 2)
 
 trend_counts <- merge(trend_counts, BH_info, by="Allele")
 trend_counts <- subset(trend_counts, select = -c(Count))
 
-write.csv(trend_counts, paste("trend_counts_", cross,".csv",sep=""), row.names = FALSE)
+write.csv(trend_counts, paste("pattern_counts_", cross,".csv",sep=""), row.names = FALSE)

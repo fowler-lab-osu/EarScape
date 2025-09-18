@@ -128,8 +128,10 @@ for (i in sequence) {
   }
 }
 
+binNumber <- 16
+
 #The 0 observation issue is caused by files that don't use 1 and 2 as their marker numbers which is a requirement for xml_to_coordinates.
-bin_data = lapply(coords, function(x) {coordinates_to_xbins(x,16)} )
+bin_data = lapply(coords, function(x) {coordinates_to_xbins(x,binNumber)} )
 
 sequence = rev(seq(1:length(bin_data)))
 
@@ -174,9 +176,8 @@ sequence = seq(1,length(bin_data))
 bin_ed = list()
 
 for (i in sequence) {
-    bin_ed[[i]] = data.frame("bins" = bin_data[[i]]$bins[2:15], "WT" = bin_data[[i]]$WT[2:15] , "GFP" = bin_data[[i]]$GFP[2:15])
+    bin_ed[[i]] = data.frame("bins" = bin_data[[i]]$bins[2:binNumber-1], "WT" = bin_data[[i]]$WT[2:binNumber-1] , "GFP" = bin_data[[i]]$GFP[2:binNumber-1])
 }
-
 
 alleleGFP <- sum(do.call(rbind,bin_ed)$GFP)
 alleleWT <- sum(do.call(rbind,bin_ed)$WT)
@@ -193,9 +194,10 @@ ends_p_data = lapply(ends_pv_data, function(x) {x[8]})
 
 t_stats = lapply(ends_pv_data, function(x) {x[6]})
 
+degreesOfFreedom = binNumber - 2 - 2    #df = 12 when bins=16
 
-lower_tail_pvals = lapply(t_stats, function(x) {pt(x, df=12, lower.tail = TRUE)}) #probs P[<t]  
-upper_tail_pvals = lapply(t_stats, function(x) {pt(x, df=12, lower.tail = FALSE)}) #probs P[>=t]  
+lower_tail_pvals = lapply(t_stats, function(x) {pt(x, df=degreesOfFreedom, lower.tail = TRUE)}) #probs P[<t]  
+upper_tail_pvals = lapply(t_stats, function(x) {pt(x, df=degreesOfFreedom, lower.tail = FALSE)}) #probs P[>=t]  
 
 linearCoeffMean = mean(unlist(lapply(ends_pv_data, function(x){x['bins','Estimate']})))
 linearCoeffVar = var(unlist(lapply(ends_pv_data, function(x){x['bins','Estimate']})))
@@ -242,7 +244,7 @@ bins_squared_ends = bin_ed
 bin_sq_data_ends = bin_ed
 
 sequence = seq(1, length(bin_ed))
-sequence2  = seq(1, 14)
+sequence2  = seq(1, binNumber-2)  #assuming chopped ends
 
 for (i in sequence) {
   for (j in sequence2) {
@@ -256,6 +258,9 @@ for (i in sequence) {
 #If this breaks just double check how R is naming the bin_squared column of bin_data and replace "bins_squared..i...bins" with that.
 sq_glm_data_ends = lapply(bin_sq_data_ends, function(x) {glm(cbind(GFP,WT) ~ bins + bins_squared_ends..i...bins,family = quasibinomial(link = "logit"), data = x)})
 
+
+#lapply(sq_glm_data_ends, function(x) {print(summary(x))})
+
 #Creating null model
 null_ends_model <- lapply(bin_ed, function(x) {glm(cbind(GFP,WT) ~ 1,family = quasibinomial(link = "logit"), data = x)})
 
@@ -263,8 +268,11 @@ null_ends_model <- lapply(bin_ed, function(x) {glm(cbind(GFP,WT) ~ 1,family = qu
 #Setting up empty list
 anova_ends_data <- vector(length = length(bin_ed))
 
+
 for (i in 1:length(bin_ed)){
   anova_ends_data[i] <- anova(null_ends_model[[i]], sq_glm_data_ends[[i]], test = "F")$"Pr(>F)"[2]
+  #print(anova(null_ends_model[[i]], sq_glm_data_ends[[i]], test = "F"))
+  #print(summary(anova(null_ends_model[[i]], sq_glm_data_ends[[i]], test = "F")))
 }
 
 anova_ends_df <- as.data.frame(anova_ends_data)
