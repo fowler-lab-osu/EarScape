@@ -10,6 +10,7 @@ Documentation in progress.
    - Transmission Rate GLM pipeline from Luis + additional edits that computes additional statistics such as SD, total count, etc. 
    - **Input**: AllEarKernelCountData_58.csv  (the TR GLM gets all its kernel count data from this spreadsheet)
    - **Output**: transmission_rate_glm_{crossType}.tsv
+   
 **2. spatial_analysis_GLM.Rmd**
    - The general code for the spatial analysis GLMs (Linear and Quadratic models) and Fisher combination tests.
    - Currently, the bins sizes are set to be 16 bins with the ends being removed to result in 14 bins at the end.
