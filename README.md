@@ -1,33 +1,28 @@
 # EarScape Spatial Analysis
-Code for statistical spatial analysis for paper "Spatial inheritance patterns    across maize ears are associated with alleles that reduce pollen fitness".
+Code for statistical spatial analysis for paper "Spatial inheritance patterns across maize ears are associated with alleles that reduce pollen fitness".
 
 Repo non-final.
 
 Documentation in progress.
 
 # Description of files 
-Top Directory:
-1) transmission_rate_GLM.Rmd
+1) __transmission_rate_GLM.Rmd__
    - Transmission Rate GLM pipeline from Luis + additional edits that computes additional statistics such as SD, total count, etc. 
-   - Input: AllEarKernelCountData_58.csv  (the TR GLM gets all its kernel count data from this spreadsheet)
-   - Output: transmission_rate_glm_{crossType}.tsv
-2) spatial_analysis_GLM.Rmd
+   - **Input**: AllEarKernelCountData_58.csv  (the TR GLM gets all its kernel count data from this spreadsheet)
+   - **Output**: transmission_rate_glm_{crossType}.tsv
+2) __spatial_analysis_GLM.Rmd__
    - The general code for the spatial analysis GLMs (Linear and Quadratic models) and Fisher combination tests.
-   - Note that the path the file is uploaded from should be changed to match the path of the current user.
-   - Other path changes include the top of the .rmd file where xml_to_coordinates.R, xml_to_coord_edited.R, and coordinates_to_xbins.R are sourced.
-   - Remember to have the packages required at the top to be installed.
-   - write.table(---) writes a .tsv table to the current folder the .rmd file resides.
-   - Currently, the bins sizes are set to be 16 bins with the ends being removed to result in 14 bins at the end. Should be fairly straightforward to switch bin sizes are needed as documented in the code.
+   - Currently, the bins sizes are set to be 16 bins with the ends being removed to result in 14 bins at the end.
 
-3) allele_spatial_plots.Rmd
+3) __spatial_vs_transmission_plots.R__
+   - Generates plots for spatial trend evidence vs. transmission rate
+
+4) __allele_spatial_plots.Rmd__
    - Code for the graph outputs, including scatterplots and bar graphs.
    - A new folder, spatial_graphs_files should be created to store all the graphs created.
    - Graphs are stored in a pdf corresponding to the specific allele and type of graph. In other words, all observations of an allele of a particular graph (ex. scatterplot vs bar graph) should be stored in one pdf.
-4) spatial_vs_transmission_plots.R
-   - Generates plots for spatial trend evidence vs. transmission rate
 
-Posthoc_Analysis:
-1) posthoc_analysis.R
+5) __posthoc_analysis.R__
    - Code for assigning pattern categories to ears
      
 Helper_Code:
@@ -38,14 +33,11 @@ Helper_Code:
 3) coordinates_to_xbins.R
    - Converts coordinates into bins.
 
-
 # Description of output files 
 Data Files:
 1) transmission_rate_glm_{crossType}.tsv
 
 2) TODO 
-
-
 
 Allele_Spatial_Plots:
 1) {allele}_bin_graphs.pdf
@@ -63,16 +55,14 @@ Allele_Spatial_Plots:
 5) {allele}_xcoordsbytr_quad_ends.pdf
    - Scatterplot of transmission rate vs. bins/x-coord with Quadratic GLM line fit. 
 
-
 # How to Run / Other Notes
-
 Run the code in the following order:
-   1. transmission_rate_GLM.Rmd
-   2. spatial_analysis.GLM.Rmd   ***
-   3. spatial_vs_transmission_plots.R
-   4. allele_spatial_plots.Rmd   ***
-   5. posthoc_analysis.R
+   **1.** transmission_rate_GLM.Rmd
+   **2.** spatial_analysis.GLM.Rmd   ***
+   **3.** spatial_vs_transmission_plots.R
+   **4.** allele_spatial_plots.Rmd   ***
+   **5.** posthoc_analysis.R
    
-   *** Manually Adjust Cross Type (pollen/ear). These scripts must be run twice, and manually changed to run for either 'pollen' or 'ear' crosses. They each take a few minutes to run. Alter the 'cross' variable towards the top of the code appropriately.
+   *** __Manually Adjusting Cross Type (pollen/ear)__: These scripts must be run twice, and manually changed to run for either 'pollen' or 'ear' crosses. They each take a few minutes to run. Alter the 'cross' variable towards the top of the code appropriately.
 
-To run analysis with a different number of bins (instead of 16), change 'binNumber' variable in both spatial_analysis_GLM.Rmd and allele_spatial_plots.Rmd. First and last bin are never included in the spatial GLM (e.g, 16 bins means 14 are used in GLM).
+**Changing Bin Number**: To run analysis with a different number of bins (instead of 16), change 'binNumber' variable in both spatial_analysis_GLM.Rmd and allele_spatial_plots.Rmd. First and last bin are never included in the spatial GLM (e.g, 16 bins means 14 are used in GLM).
