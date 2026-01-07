@@ -66,13 +66,13 @@ Allele_Spatial_Plots:
 
 # How to Run / Other Notes
 
-- Run the code in the following order:
-   1) transmission_rate_GLM.Rmd
-   2) spatial_analysis.GLM.Rmd   ***Manually Adjust Cross Type (pollen/ear)
-   3) spatial_vs_transmission_plots.R
-   4) allele_spatial_plots.Rmd   ***Manually Adjust Cross Type (pollen/ear)
-   5) posthoc_analysis.R
+Run the code in the following order:
+   1. transmission_rate_GLM.Rmd
+   2. spatial_analysis.GLM.Rmd   ***
+   3. spatial_vs_transmission_plots.R
+   4. allele_spatial_plots.Rmd   ***
+   5. posthoc_analysis.R
    
-   ***These scripts must be run twice, and manually changed to run for either 'pollen' or 'ear' crosses. They each take a few minutes to run. Alter the 'cross' variable towards the top of the code appropriately.
+   *** Manually Adjust Cross Type (pollen/ear). These scripts must be run twice, and manually changed to run for either 'pollen' or 'ear' crosses. They each take a few minutes to run. Alter the 'cross' variable towards the top of the code appropriately.
 
-- To run analysis with a different number of bins (instead of 16), change 'binNumber' variable in both spatial_analysis_GLM.Rmd and allele_spatial_plots.Rmd. First and last bin are never included in the spatial GLM (e.g, 16 bins means 14 are used in GLM).
+To run analysis with a different number of bins (instead of 16), change 'binNumber' variable in both spatial_analysis_GLM.Rmd and allele_spatial_plots.Rmd. First and last bin are never included in the spatial GLM (e.g, 16 bins means 14 are used in GLM).
