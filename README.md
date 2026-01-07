@@ -6,23 +6,23 @@ Repo non-final.
 Documentation in progress.
 
 # Description of files 
-1) __transmission_rate_GLM.Rmd__
+**1. transmission_rate_GLM.Rmd**
    - Transmission Rate GLM pipeline from Luis + additional edits that computes additional statistics such as SD, total count, etc. 
    - **Input**: AllEarKernelCountData_58.csv  (the TR GLM gets all its kernel count data from this spreadsheet)
    - **Output**: transmission_rate_glm_{crossType}.tsv
-2) __spatial_analysis_GLM.Rmd__
+**2. spatial_analysis_GLM.Rmd**
    - The general code for the spatial analysis GLMs (Linear and Quadratic models) and Fisher combination tests.
    - Currently, the bins sizes are set to be 16 bins with the ends being removed to result in 14 bins at the end.
 
-3) __spatial_vs_transmission_plots.R__
+**3. spatial_vs_transmission_plots.R**
    - Generates plots for spatial trend evidence vs. transmission rate
 
-4) __allele_spatial_plots.Rmd__
+**4. allele_spatial_plots.Rmd**
    - Code for the graph outputs, including scatterplots and bar graphs.
    - A new folder, spatial_graphs_files should be created to store all the graphs created.
    - Graphs are stored in a pdf corresponding to the specific allele and type of graph. In other words, all observations of an allele of a particular graph (ex. scatterplot vs bar graph) should be stored in one pdf.
 
-5) __posthoc_analysis.R__
+**5. posthoc_analysis.R**
    - Code for assigning pattern categories to ears
      
 Helper_Code:
@@ -57,11 +57,11 @@ Allele_Spatial_Plots:
 
 # How to Run / Other Notes
 Run the code in the following order:
-   **1.** transmission_rate_GLM.Rmd
-   **2.** spatial_analysis.GLM.Rmd   ***
-   **3.** spatial_vs_transmission_plots.R
-   **4.** allele_spatial_plots.Rmd   ***
-   **5.** posthoc_analysis.R
+   1. transmission_rate_GLM.Rmd
+   2. spatial_analysis.GLM.Rmd   ***
+   3. spatial_vs_transmission_plots.R
+   4. allele_spatial_plots.Rmd   ***
+   5. posthoc_analysis.R
    
    *** __Manually Adjusting Cross Type (pollen/ear)__: These scripts must be run twice, and manually changed to run for either 'pollen' or 'ear' crosses. They each take a few minutes to run. Alter the 'cross' variable towards the top of the code appropriately.
 
