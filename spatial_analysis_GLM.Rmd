@@ -40,7 +40,7 @@ xml_to_coord <- function(input_data_path){
 
 ```{r}
 #Getting the all the .xml files. Divided into folders depending on the allele.
-cross <- "ear"
+cross <- "ear" #'ear' or 'pollen'
 
 if(cross=="ear"){
   list_alleles <- list.dirs("./SpatialAnalysis_Alleles_58/Ear_Crosses", full.names = FALSE, recursive = FALSE)
@@ -176,7 +176,7 @@ sequence = seq(1,length(bin_data))
 bin_ed = list()
 
 for (i in sequence) {
-    bin_ed[[i]] = data.frame("bins" = bin_data[[i]]$bins[2:binNumber-1], "WT" = bin_data[[i]]$WT[2:binNumber-1] , "GFP" = bin_data[[i]]$GFP[2:binNumber-1])
+    bin_ed[[i]] = data.frame("bins" = bin_data[[i]]$bins[2:(binNumber-1)], "WT" = bin_data[[i]]$WT[2:(binNumber-1)] , "GFP" = bin_data[[i]]$GFP[2:(binNumber-1)])
 }
 
 alleleGFP <- sum(do.call(rbind,bin_ed)$GFP)

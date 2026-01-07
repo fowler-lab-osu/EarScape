@@ -41,7 +41,7 @@ xml_to_coord <- function(input_data_path){
 ```
 
 ```{r}
-cross="Ear"
+cross="Ear" #'Ear' or 'Pollen'
 list_alleles <- list.dirs(paste("SpatialAnalysis_Alleles_58/",cross,"_Crosses/", sep=""), full.names = FALSE, recursive = FALSE)
 ```
 
@@ -62,7 +62,7 @@ for (i in 1:length(list_alleles)){
   filenames[[i]][[3]] = as.list(basename(filenames[[i]][[2]])) #Extracting the name of obs.
 }
 
-dir.create("./Allele_Spatial_Plots")
+dir.create(paste("./Allele_Spatial_Plots/",cross, sep=""))
 
 ```
 
@@ -82,7 +82,7 @@ for (n in 1:length(filenames)){
   coords = lapply(filenames[[n]][[2]], xml_to_coord)
 
   #Bar graph of WT vs. GFP for all observations.
-  pdf(file = paste("./Allele_Spatial_Plots/", filenames[[n]][[1]], "_coord_plots.pdf", sep = ""),
+  pdf(file = paste("./Allele_Spatial_Plots/",cross,"/", filenames[[n]][[1]], "_coord_plots.pdf", sep = ""),
     width = 5.8,
     height = 3,)
 
@@ -118,9 +118,11 @@ for (n in 1:length(filenames)){
       filenames[[n]][[3]] = filenames[[n]][[3]][-i]
     }
   }
+
+  binNumber <- 16
   
   #The 0 observation issue is caused by files that don't use 1 and 2 as their marker numbers which is a requirement for xml_to_coordinates
-  bin_data = lapply(coords, function(x) {coordinates_to_xbins(x,16)} )
+  bin_data = lapply(coords, function(x) {coordinates_to_xbins(x,binNumber)} )
   
   #Start chopping off the ends
   sequence = seq(1,length(bin_data))
@@ -129,12 +131,12 @@ for (n in 1:length(filenames)){
   bin_ed = list()
   
   for (i in sequence) {
-      bin_ed[[i]] = data.frame("bins" = bin_data[[i]]$bins[2:15], "WT" = bin_data[[i]]$WT[2:15] , "GFP" = bin_data[[i]]$GFP[2:15])
+      bin_ed[[i]] = data.frame("bins" = bin_data[[i]]$bins[2:(binNumber-1)], "WT" = bin_data[[i]]$WT[2:(binNumber-1)] , "GFP" = bin_data[[i]]$GFP[2:(binNumber-1)])
   }
   
   titleList <- filenames[[n]][[3]]
   
-  pdf(file = paste("./Allele_Spatial_Plots/", filenames[[n]][[1]], "_bin_graphs.pdf", sep = ""),
+  pdf(file = paste("./Allele_Spatial_Plots/",cross,"/", filenames[[n]][[1]], "_bin_graphs.pdf", sep = ""),
     width = 5.8,
     height = 3,)
 
@@ -202,7 +204,7 @@ for (i in sequence) {
 }
 
 #The 0 observation issue is caused by files that don't use 1 and 2 as their marker numbers which is a requirement for xml_to_coordinates
-bin_data = lapply(coords, function(x) {coordinates_to_xbins(x,16)} )
+bin_data = lapply(coords, function(x) {coordinates_to_xbins(x,binNumber)} )
 
 sequence = rev(seq(1:length(bin_data)))
 
@@ -245,7 +247,7 @@ sequence = seq(1,length(bin_data))
 bin_ed = list()
 
 for (i in sequence) {
-    bin_ed[[i]] = data.frame("bins" = bin_data[[i]]$bins[2:15], "WT" = bin_data[[i]]$WT[2:15] , "GFP" = bin_data[[i]]$GFP[2:15])
+    bin_ed[[i]] = data.frame("bins" = bin_data[[i]]$bins[2:(binNumber-1)], "WT" = bin_data[[i]]$WT[2:(binNumber-1)] , "GFP" = bin_data[[i]]$GFP[2:(binNumber-1)])
 }
 
 #turn the data into a glm
@@ -258,8 +260,11 @@ ends_pv_data = lapply(ends_glm_data, function(x) {(summary(x)$coefficients)})
 ends_p_data = lapply(ends_pv_data, function(x) {x[8]})
 
 t_stats = lapply(ends_pv_data, function(x) {x[6]})
-lower_tail_pvals = lapply(t_stats, function(x) {pt(x, df=12, lower.tail = TRUE)}) #probs P[<t]  
-upper_tail_pvals = lapply(t_stats, function(x) {pt(x, df=12, lower.tail = FALSE)}) #probs P[>=t]  
+
+
+degreesOfFreedom = binNumber - 2 - 2    #df = 12 when bins=16
+lower_tail_pvals = lapply(t_stats, function(x) {pt(x, df=degreesOfFreedom, lower.tail = TRUE)}) #probs P[<t]  
+upper_tail_pvals = lapply(t_stats, function(x) {pt(x, df=degreesOfFreedom, lower.tail = FALSE)}) #probs P[>=t]  
 
 
 beta0s = lapply(ends_pv_data, function(x) {x[1]})
@@ -339,7 +344,7 @@ for(z in 1:length(bin_w_trate_ed)){
 bin_data_df <- Reduce(rbind, bin_w_trate_ed) 
 
 
-pdf(file = paste("./Allele_Spatial_Plots/", filenames[[n]][[1]], "_xcoordsbytr_linear_ends.pdf", sep = ""),
+pdf(file = paste("./Allele_Spatial_Plots/",cross,"/", filenames[[n]][[1]], "_xcoordsbytr_linear_ends.pdf", sep = ""),
     width = 5.8,
     height = 3,)
 
@@ -397,11 +402,11 @@ g <- g + Map(function(beta0, beta1) {
     stat_function(fun = function(x){exp(beta0 + beta1*x)/(1 + exp(beta0 + beta1*x))}, color = "#001eff", alpha = 1, lwd = 0.7)
     }, inc_trends$beta0s,inc_trends$beta1s) 
 
-ggsave(paste("./Allele_Spatial_Plots/",filenames[[n]][[1]],"_trends_lin_glm.png",sep=""), units=unit, width=w, height=h, dpi=dpi)
-ggsave(paste("./Allele_Spatial_Plots/",filenames[[n]][[1]],"_trends_lin_glm.pdf",sep=""), units=unit, width=w, height=h)
+ggsave(paste("./Allele_Spatial_Plots/",cross,"/",filenames[[n]][[1]],"_trends_lin_glm.png",sep=""), units=unit, width=w, height=h, dpi=dpi)
+ggsave(paste("./Allele_Spatial_Plots/",cross,"/",filenames[[n]][[1]],"_trends_lin_glm.pdf",sep=""), units=unit, width=w, height=h)
 
 #Quadratic Plots
-pdf(file = paste("./Allele_Spatial_Plots/", filenames[[n]][[1]], "_xcoordsbytr_quad_ends.pdf", sep = ""),
+pdf(file = paste("./Allele_Spatial_Plots/",cross,"/", filenames[[n]][[1]], "_xcoordsbytr_quad_ends.pdf", sep = ""),
     width = 5.8,
     height = 3,)
 
